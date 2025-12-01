@@ -198,7 +198,7 @@ export default function Home() {
   });
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <div className="h-dvh flex flex-col bg-gray-50 overflow-hidden">
       {/* Header */}
       <header className="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10">
         <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function Home() {
         )}
 
         {/* Floating Action Button & Controls */}
-        <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-4 pointer-events-none px-4 z-20">
+        <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center gap-4 pointer-events-none px-4 z-20 pb-safe-or-4">
           {/* View Toggle */}
           <div className="bg-white rounded-full shadow-lg p-1 flex pointer-events-auto border border-gray-100">
             <button 
@@ -362,7 +362,7 @@ export default function Home() {
           </div>
 
           {/* Main Action Button */}
-          <div className="flex gap-4 w-full max-w-md pointer-events-auto pb-safe">
+          <div className="flex gap-4 w-full max-w-md pointer-events-auto pb-2">
             <button 
               onClick={initiatePostRequest}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white py-4 px-6 rounded-2xl shadow-xl font-bold flex items-center justify-center gap-2 transition-transform active:scale-95"
