@@ -101,19 +101,13 @@ export default function Home() {
   }, []);
 
   const handlePostRequest = async (data: Omit<Request, 'id' | 'created_at' | 'status' | 'user_id'>) => {
-    if (!user) {
-      setShowRequestForm(false);
-      setShowAuthModal(true);
-      return;
-    }
-
     // Optimistic update (will be overwritten by realtime/refresh)
     const newRequest: Request = {
       ...data,
       id: 'temp-' + Date.now(),
       created_at: new Date().toISOString(),
       status: 'open',
-      user_id: user.id
+      user_id: user?.id
     };
     setRequests([newRequest, ...requests]);
     setShowRequestForm(false);
@@ -131,7 +125,7 @@ export default function Home() {
         address: data.location.address,
         contact_phone: data.contact.phone,
         status: 'open',
-        user_id: user ? user.id : 'anonymous'
+        user_id: user?.id
       })
       .select();
 
@@ -157,11 +151,6 @@ export default function Home() {
   };
 
   const handleStatusChange = async (id: string, newStatus: RequestStatus) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     // Optimistic update
     const previousRequests = [...requests];
     setRequests(requests.map(req => 
@@ -227,15 +216,7 @@ export default function Home() {
             >
               <LogOut className="w-4 h-4" />
             </button>
-          ) : (
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800"
-            >
-              <LogIn className="w-4 h-4" />
-              {t.auth.login_title}
-            </button>
-          )}
+          ) : null}
         </div>
       </header>
 
