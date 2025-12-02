@@ -131,7 +131,7 @@ export default function Home() {
         address: data.location.address,
         contact_phone: data.contact.phone,
         status: 'open',
-        user_id: user.id
+        user_id: user ? user.id : 'anonymous'
       })
       .select();
 
@@ -183,11 +183,7 @@ export default function Home() {
   };
 
   const initiatePostRequest = () => {
-    if (!user) {
-      setShowAuthModal(true);
-    } else {
-      setShowRequestForm(true);
-    }
+    setShowRequestForm(true);
   };
 
   // Filtered requests for list view

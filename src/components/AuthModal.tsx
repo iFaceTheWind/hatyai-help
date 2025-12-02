@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { X, Mail, Loader2, CheckCircle } from 'lucide-react';
+import { X, Mail, Loader2, CheckCircle, KeyRound } from 'lucide-react';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -12,6 +12,7 @@ interface AuthModalProps {
 export default function AuthModal({ onClose }: AuthModalProps) {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +39,27 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     }
   };
 
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email',
+      });
+
+      if (error) throw error;
+      onClose(); // Close modal on success
+    } catch (err: any) {
+      setError(err.message || 'Invalid code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
@@ -59,10 +81,38 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           <div className="text-center py-4">
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
             <h3 className="font-bold text-lg text-gray-900">Check your email</h3>
-            <p className="text-gray-600 mt-2">We sent a magic link to <b>{email}</b></p>
+            <p className="text-gray-600 mt-2 mb-6">We sent a magic link to <b>{email}</b></p>
+            
+            <div className="text-left bg-gray-50 p-4 rounded-xl mb-6">
+              <p className="text-sm text-gray-600 mb-3 font-medium">Link opening in Gmail/Line?</p>
+              <p className="text-xs text-gray-500 mb-3">
+                If the link opens in a different app, copy the 6-digit code from the email and paste it below to stay logged in here.
+              </p>
+              
+              <form onSubmit={handleVerifyOtp} className="space-y-3">
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                  <input 
+                    type="text" 
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.trim())}
+                    className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2 text-sm outline-none focus:border-blue-500 text-gray-900"
+                    placeholder="Enter 6-digit code"
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={loading || otp.length < 6}
+                  className="w-full py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Verify Code'}
+                </button>
+              </form>
+            </div>
+
             <button 
               onClick={onClose}
-              className="mt-6 w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-semibold"
+              className="w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-semibold"
             >
               Close
             </button>
@@ -103,4 +153,3 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     </div>
   );
 }
-
