@@ -19,21 +19,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
+    // Check if we have an auth link in the URL
+    // This helps preventing a flash of "logged out" state while Supabase processes the hash
+    const isAuthCallback = 
+      typeof window !== 'undefined' && 
+      (window.location.hash.includes('access_token') || 
+       window.location.hash.includes('type=recovery') ||
+       window.location.hash.includes('type=invite') ||
+       window.location.search.includes('code='));
+    
+    // Check for errors in the URL (e.g. link consumed)
+    if (typeof window !== 'undefined' && window.location.hash.includes('error_description')) {
+       const params = new URLSearchParams(window.location.hash.substring(1));
+       const errorDesc = params.get('error_description');
+       if (errorDesc) {
+         console.error('Auth Error from URL:', errorDesc.replace(/\+/g, ' '));
+         // If there's an error, we probably won't successfully log in from this link
+       }
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        if (session) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        } else if (!isAuthCallback) {
+          // Only stop loading immediately if we are NOT waiting for an auth callback
+          setLoading(false);
+        }
+        // If isAuthCallback is true and session is null, we keep loading: true
+        // and wait for onAuthStateChange to fire (or our timeout)
+      }
     });
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout: if we are waiting for a callback but it hangs (e.g. invalid token that doesn't trigger explicit error),
+    // stop loading after a few seconds so the user can at least retry.
+    if (isAuthCallback) {
+      setTimeout(() => {
+        if (mounted) setLoading((prev) => prev ? false : prev); // Only set false if it was true
+      }, 5000);
+    }
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -54,4 +97,3 @@ export function useAuth() {
   }
   return context;
 }
-

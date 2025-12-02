@@ -7,7 +7,7 @@ import MapWrapper from '@/components/MapWrapper';
 import RequestForm from '@/components/RequestForm';
 import AuthModal from '@/components/AuthModal';
 import { Request, Volunteer, RequestStatus, HelpType, UrgencyLevel } from '@/types';
-import { Plus, Heart, Globe, List, Map as MapIcon, LogIn, LogOut, Droplets, Utensils, Pill, Car, LifeBuoy, Zap } from 'lucide-react';
+import { Plus, Heart, Globe, List, Map as MapIcon, LogIn, LogOut, Droplets, Utensils, Pill, Car, LifeBuoy, Zap, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 // Mock Data for initial fallback or volunteers
@@ -36,7 +36,7 @@ const typeIcons: Record<HelpType, React.ReactNode> = {
 
 export default function Home() {
   const { t, language, setLanguage } = useLanguage();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [requests, setRequests] = useState<Request[]>([]);
   const [volunteers] = useState<Volunteer[]>(INITIAL_VOLUNTEERS);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
